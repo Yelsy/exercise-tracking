@@ -7,6 +7,7 @@ const ExerciseList = () => {
   const [isEditing, setIsEditing] = useState(false); 
   const [editedExercise, setEditedExercise] = useState(null); 
   const [showForm, setShowForm] = useState(false);
+  const [caloriesPerDay, setCaloriesPerDay] = useState({});
 
   useEffect(() => {
     fetchExercises();
@@ -16,6 +17,7 @@ const ExerciseList = () => {
     try {
       const response = await axios.get('http://localhost:5000/exercises');
       setExercises(response.data);
+      calculateCaloriesPerDay(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -69,6 +71,16 @@ const ExerciseList = () => {
     setShowForm(true); 
   };
 
+  const calculateCaloriesPerDay = (exercises) => {
+    const caloriesPerDayObj = {};
+    exercises.forEach(exercise => {
+      const date = new Date(exercise.date).toDateString(); // Suponiendo que hay un campo de fecha en cada ejercicio
+      caloriesPerDayObj[date] = caloriesPerDayObj[date] || 0;
+      caloriesPerDayObj[date] += exercise.caloriesBurned;
+    });
+    setCaloriesPerDay(caloriesPerDayObj);
+  };
+
   return (
     <div>
     {isEditing && (
@@ -118,12 +130,22 @@ const ExerciseList = () => {
           </li>
         ))}
       </ul>
+      <h2 className="text-2xl font-semibold mb-4 mt-8 text-center">Calorías Quemadas por Día</h2>
+      <ul className="divide-y divide-gray-200">
+        {Object.entries(caloriesPerDay).map(([date, calories]) => (
+          <li key={date} className="py-6 flex justify-between items-center">
+            <div>
+              <p className="text-xl font-semibold">{date}</p>
+              <p className="text-lg text-gray-500">Calorías quemadas: {calories}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
 
 export default ExerciseList;
-
 
 
 
